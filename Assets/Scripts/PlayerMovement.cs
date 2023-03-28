@@ -8,7 +8,8 @@ public class PlayerMovement : MonoBehaviour
     public float walkSpeed = 5;
     public float runSpeed  = 8;
 
-    private Vector3 moveDirection;
+    private Vector3 moveZDirection;
+    private Vector3 moveXDirection;
     private Vector3 velocity;
 
     public bool isGrounded;
@@ -39,37 +40,45 @@ public class PlayerMovement : MonoBehaviour
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
+            animator.SetBool("IsGrounded", true);
         }
 
         float moveZ = Input.GetAxis("Vertical");
+        float moveX = Input.GetAxis("Horizontal");
 
-        moveDirection = new Vector3(0, 0, moveZ);
-        moveDirection = transform.TransformDirection(moveDirection);
+        moveZDirection = new Vector3(0, 0, moveZ);
+        moveZDirection = transform.TransformDirection(moveZDirection);
 
-        if (isGrounded)
+        moveXDirection = new Vector3(moveX, 0, 0);
+        moveXDirection = transform.TransformDirection(moveXDirection);
+
+        if (moveZDirection != Vector3.zero && !Input.GetKey(KeyCode.LeftShift))
         {
-            if (moveDirection != Vector3.zero && !Input.GetKey(KeyCode.LeftShift))
-            {
-                Walk();
-            } 
-            else if (moveDirection != Vector3.zero && Input.GetKey(KeyCode.LeftShift))
-            {
-                Run();
-            } 
-            else if (moveDirection == Vector3.zero)
-            {
-                Idle();
-            }
-
-            moveDirection *= moveSpeed;
-
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                Jump();
-            }
+            Walk();
+        } 
+        else if (moveXDirection != Vector3.zero && !Input.GetKey(KeyCode.LeftShift))
+        {   
+            Strafe();
+        } 
+        else if (moveZDirection != Vector3.zero && Input.GetKey(KeyCode.LeftShift))
+        {   
+            Run();
+        }
+        else if (moveZDirection == Vector3.zero && moveXDirection == Vector3.zero)
+        {
+            Idle();
         }
 
-        controller.Move(moveDirection * Time.deltaTime);
+        moveZDirection *= moveSpeed;
+        moveXDirection *= moveSpeed;
+
+        if (isGrounded && Input.GetKeyDown(KeyCode.Space))
+        {
+            Jump();
+        }
+        
+        controller.Move(moveZDirection * Time.deltaTime);
+        controller.Move(moveXDirection * Time.deltaTime);
 
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
@@ -86,6 +95,12 @@ public class PlayerMovement : MonoBehaviour
         animator.SetFloat("Speed", 0.5f, 0.08f, Time.deltaTime);
     }
 
+    private void Strafe() 
+    {
+        moveSpeed = walkSpeed;
+        animator.SetFloat("Speed", 0.5f, 0.08f, Time.deltaTime);
+    }
+
     private void Run()
     {
         moveSpeed = runSpeed;
@@ -95,6 +110,6 @@ public class PlayerMovement : MonoBehaviour
     private void Jump()
     {
         velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
-        animator.SetTrigger("Jump");
+        animator.SetBool("IsGrounded", false);
     }
 }
