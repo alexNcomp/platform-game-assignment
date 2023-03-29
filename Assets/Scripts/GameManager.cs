@@ -11,16 +11,23 @@ public class GameManager : MonoBehaviour
     private void Awake() 
     {
         instance = this;
-        DontDestroyOnLoad(instance);
+        DontDestroyOnLoad(gameObject);
     }
 
     public void AddPoints(int points)
     {
         this.points += points;
+        Debug.Log("Points: " + this.points);
+    }
+
+    public void ResetPoints()
+    {
+        this.points = 0;
     }
 
     public void SetPowerUp(bool condition)
     {
         this.powerUp = condition;
+        Debug.Log("Power Up");
     }
 }

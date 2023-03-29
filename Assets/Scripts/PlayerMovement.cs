@@ -18,6 +18,7 @@ public class PlayerMovement : MonoBehaviour
     public float gravity = -9.81f;
 
     public float jumpHeight = 2f;
+    private int jumps = 0;
 
     private CharacterController controller;
     private Animator animator; 
@@ -41,6 +42,7 @@ public class PlayerMovement : MonoBehaviour
         {
             velocity.y = -2f;
             animator.SetBool("IsGrounded", true);
+            jumps = 0;
         }
 
         float moveZ = Input.GetAxis("Vertical");
@@ -52,30 +54,24 @@ public class PlayerMovement : MonoBehaviour
         moveXDirection = new Vector3(moveX, 0, 0);
         moveXDirection = transform.TransformDirection(moveXDirection);
 
-        if (moveZDirection != Vector3.zero && !Input.GetKey(KeyCode.LeftShift))
-        {
-            Walk();
-        } 
-        else if (moveXDirection != Vector3.zero && !Input.GetKey(KeyCode.LeftShift))
-        {   
-            Strafe();
-        } 
-        else if (moveZDirection != Vector3.zero && Input.GetKey(KeyCode.LeftShift))
-        {   
-            Run();
-        }
-        else if (moveZDirection == Vector3.zero && moveXDirection == Vector3.zero)
-        {
-            Idle();
-        }
+        if (moveZDirection != Vector3.zero && !Input.GetKey(KeyCode.LeftShift))         { Walk(); } 
+        else if (moveXDirection != Vector3.zero && !Input.GetKey(KeyCode.LeftShift))    { Strafe(); } 
+        else if (moveZDirection != Vector3.zero && Input.GetKey(KeyCode.LeftShift))     { Run(); }
+        else if (moveZDirection == Vector3.zero && moveXDirection == Vector3.zero)      { Idle(); }
 
         moveZDirection *= moveSpeed;
         moveXDirection *= moveSpeed;
 
         if (isGrounded && Input.GetKeyDown(KeyCode.Space))
+        {   
+            Jump();
+            jumps = 1;
+        }
+        else if (GameManager.instance.powerUp && Input.GetKeyDown(KeyCode.Space) && jumps < 2)
         {
             Jump();
-        }
+            jumps = 2;
+        } 
         
         controller.Move(moveZDirection * Time.deltaTime);
         controller.Move(moveXDirection * Time.deltaTime);
@@ -109,7 +105,17 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump()
     {
-        velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
-        animator.SetBool("IsGrounded", false);
+        if (jumps == 0)
+        {
+            Debug.Log(jumps);
+            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
+            animator.SetBool("IsGrounded", false);
+        }
+        else if (jumps == 1)
+        {
+            Debug.Log(jumps);
+            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
+            animator.SetTrigger("Jump");
+        }
     }
 }
